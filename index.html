@@ -6,21 +6,39 @@
 		<script src="vendor/angular/angular.min.js"></script>
 		<script src="controllers/controller.js"></script>
 		<style>
-			body { position: absolute; width: 100%; height: 100%; overflow: hidden; }
-			.board { background: rgba(255,0,0,0.3); /* opacity: 0.9; */ margin: 0 auto; width: 25%; padding-bottom: 25%; /* height: 25%; */ }
-			.some-directive { background: cadetblue;  font-size: 56px; text-align: center;  }
+			body { position: absolute; width: 100%; height: 100%; margin: 0; overflow: hidden; background: black;  }
+			.board { width: 30%; height: 60%; margin: 0 auto; }
+			.some-directive { background: black; text-align: center; width: calc(100% / 3); height: calc(100% / 3); border: 10px solid white; box-sizing: border-box; float: left; display: flex; justify-content: center; /* align horizontal */ align-items: center; }
+			.some-directive span {  opacity: 0;  }
+			.some-directive .circle {  opacity: 1; -webkit-transition: opacity .4s ease-out; }
+			.some-directive .circle:after { content: "o"; color: white; height: 100%; width: 100%; font-size: 156px; text-shadow: 2px 0px 27px rgba(255, 255, 255, 1); }
+			.some-directive .square { opacity: 1; -webkit-transition: opacity .4s ease-out; }
+			.some-directive .square:after { content: "\d7"; color: white; height: 100%; width: 100%; font-size: 156px; text-shadow: 2px 0px 27px rgba(255, 255, 255, 1); }
+			.some-directive:nth-of-type(3n+1) { border-left: none; }
+			.some-directive:nth-of-type(3n+3) { border-right: none; }
+			.some-directive:nth-child(-n+3) { border-top: none; }
+			.some-directive:nth-child(n+7) { border-bottom: none; }
+
+			.score { color: white; margin: 0 auto; display: block; width: 30%; text-align: center; font-size: 54px }
+			button { border: none; background: white; font-size: 44px; margin: 0 auto; width: 30%; display: block; }
+		</style>
 		</style>
 	</head>
 	<body ng-controller="mainCtrl as game">
-	{{game.score}}
+	{{game.state}}
 	{{game.board}}
 	{{game.turns}}
 	{{game.gameScore}}
 		<div class='board'>
-			<div ng-repeat="cell in game.board" some-directive ng-click="game.makeTurn($event)" value="{{$index}}"></div>
+			<div ng-repeat="item in game.board" some-directive ng-click="game.makeTurn($event)" value="{{$index}}"></div>
 		</div>
-	<span>choose side</span>
-	<button ng-click='game.chooseSide($event)' value='{{game.players.0}}'>{{game.players.0}}</button>
-	<button ng-click='game.chooseSide($event)' value='{{game.players.1}}'>{{game.players.1}}</button>
+		<div class="score">
+			<span>X : {{game.gameScore.x}}</span>
+			<span>O : {{game.gameScore.o}}</span>
+			<span ng-init="game.gameScore.draw=0">draw : {{game.gameScore.draw}}</span>
+		</div>
+	<!-- <span>choose side</span> -->
+	<!-- <button ng-click='game.chooseSide($event)' value='{{game.players.0}}'>{{game.players.0}}</button> -->
+	<button ng-click='game.resetGame($event)'>Restart Game</button>
 	</body>
 </html>

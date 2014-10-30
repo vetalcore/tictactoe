@@ -2,43 +2,47 @@
 	angular.module('app', []);
 
 	function mainCtrl(boardObject, gameObject){
-		var game = this;
+		var game = this;game.ch = true;
 		game.board = boardObject.board;
-		game.score = gameObject.score.boardState;
+		game.state = gameObject.score.boardState.slice(0);
 		game.players =  gameObject.players;
 		game.gameScore = gameObject.score.boardScore;
 
 		game.chooseSide = function(event){
-			console.log(event.target.value);
+			game.ch = false;
+			game.ch = true;
 		}
 
-		game.makeTurn = function(event){
+		game.makeTurn = function(event,$compile){
 			var elementIndex = Array.prototype.indexOf.call(event.target.parentElement.children, event.target)
-			game.score.turns = gameObject.score.turns;
-			if(!event.target.innerText) {
-				game.score[elementIndex] = game.players[gameObject.score.turns%2];
+			game.state.turns = gameObject.score.turns;
+			//console.log();
+			if(!game.state[elementIndex] && (/some-directive/).test(event.target.classList)) {
+				game.state[elementIndex] = game.players[gameObject.score.turns%2].type;
 				gameObject.score.turns++;
 			}
-			if(Array.prototype.concat.apply([],['x','o'].map(function(z){ return [[0,3,6],[1,4,7,],[2,5,8],[0,1,2],[3,4,5],[,6,7,8],[0,4,8],[6,4,2]].map(function(x){ return x.map(function(y){ return game.score[y] == z && z  }) }).filter(function(x) { return x.every(function(k){ return k; }); }); }))[0]){
+			if(Array.prototype.concat.apply([],['x','o'].map(function(z){ return [[0,3,6],[1,4,7,],[2,5,8],[0,1,2],[3,4,5],[,6,7,8],[0,4,8],[6,4,2]].map(function(x){ return x.map(function(y){ return game.state[y] == z && z  }) }).filter(function(x) { return x.every(function(k){ return k; }); }); }))[0]){
 				console.log('match');
-				gameObject.score.boardScore[Array.prototype.concat.apply([],['x','o'].map(function(z){ return [[0,3,6],[1,4,7,],[2,5,8],[0,1,2],[3,4,5],[,6,7,8],[0,4,8],[6,4,2]].map(function(x){ return x.map(function(y){ return game.score[y] == z && z  }) }).filter(function(x) { return x.every(function(k){ return k; }); }); }))[0][0]] ++;
-				game.score = ['','','','','','','','',''];
-				//game.board = boardObject.board;
+				gameObject.score.boardScore[Array.prototype.concat.apply([],['x','o'].map(function(z){ return [[0,3,6],[1,4,7,],[2,5,8],[0,1,2],[3,4,5],[,6,7,8],[0,4,8],[6,4,2]].map(function(x){ return x.map(function(y){ return game.state[y] == z && z  }) }).filter(function(x) { return x.every(function(k){ return k; }); }); }))[0][0]] ++;
+				game.state = gameObject.score.boardState.slice(0);
+				//boardObject.board.map(function(x){return x+8;});
+				game.board = game.board.map(function(x){return (x+9)%18;});
 				gameObject.score.turns = 0;
 				game.gameScore = gameObject.score.boardScore;
-
+				
 			}	
 			else if(gameObject.score.turns == 9){
-				game.score = ['','','','','','','','',''];
-				//game.board = boardObject.board;
-				gameObject.score.turns = 0;				
+				game.state = gameObject.score.boardState.slice(0);
+				game.board = game.board.map(function(x){return (x+9)%18;});
+				gameObject.score.turns = 0;	
+				game.gameScore.draw++;			
 				console.log('draw');
 			}
 
 		}
 	}
 	mainCtrl.prototype.someObj = { };
-	mainCtrl.$inject = ['boardObject', 'gameObject'];
+	mainCtrl.$inject = ['boardObject', 'gameObject','$compile'];
 
 	function otherCtrl(){}
 	otherCtrl.prototype = Object.create(mainCtrl.prototype);
@@ -51,11 +55,14 @@
 
 	function gameObject(){
 		this.score = {
-		 	boardState : ['1 ','1 ',' 1','1 ',' 1','1 ','1 ','1 ','1 '],
+		 	boardState : [,,,,,,,,],
 		 	boardScore : { 'x' : 0, 'o' : 0},
 		 	turns : 0
 		}
-		this.players  = { 0: 'x', 1:'o'};
+		this.players  = [
+			{ type: 'x', clas:'square'},
+			{ type: 'o', clas:'circle'}
+		];
 		return this;
 	}
 
@@ -71,17 +78,19 @@
 		return {
 			restrict: 'EA',
 	        replace: true,
-	        transclude: true,
+	        transclude: false,
 	        link: function (scope, element, attrs) {
-	        	element.on('click', function () {
-		      		var self = this;
-		        	console.log();
-		        	//self.innerHTML = gameObject.players[gameObject.turns%2];
+	        	var element = element;
+	        	element.on('click', function (e) {
+	        		//console.log(event.target.children.length);
+	        		if (!(/some-directive/).test(event.target.classList) || (/circle|square/).test(event.target.firstChild.classList))return false;
+	        		this.firstChild.classList.add(gameObject.players[gameObject.score.turns%2].clas);
+	        		
 		      	});
 		    },
 			template: [
 			  	'<div class="some-directive">',
-			  	'{{game.score[$index]}}',
+			  	'<span></span>',
 			    '</div>'
 			].join('')
 		};
